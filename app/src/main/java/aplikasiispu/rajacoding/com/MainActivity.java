@@ -5,7 +5,9 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
@@ -82,6 +84,20 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 logoutUser();
+            }
+        });
+        findViewById(R.id.cv_hubungi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean installed = appInstalledOrNot();
+                if(installed) {
+                    openWhatsApp("6281391106600");
+                } else {
+                    String nomor = "6281391106600" ;
+                    Intent panggil = new Intent(Intent. ACTION_DIAL);
+                    panggil.setData(Uri. fromParts("tel",nomor,null));
+                    startActivity(panggil);
+                }
             }
         });
     }
@@ -192,17 +208,17 @@ public class MainActivity extends AppCompatActivity {
                             if (Integer.parseInt(asap) > intensitas_asap) {
                           //      stopHandler();
                                 text_keterangan.setText("Sensor Gas terdeteksi Bahaya\nAda asap rokok.");
-                                new AlertDialog.Builder(MainActivity.this)
-                                        .setTitle("PERINGATAN !!!")
-                                        .setMessage("Terdapat asap rokok di toilet ini.")
-                                        .setCancelable(false)
-                                        .setNegativeButton("TUTUP", null)
-                                        .setPositiveButton("LAPORKAN", new DialogInterface.OnClickListener() {
-                                            public void onClick(DialogInterface dialog, int id) {
-                                                finish();
-                                            }
-                                        })
-                                        .show();
+//                                new AlertDialog.Builder(MainActivity.this)
+//                                        .setTitle("PERINGATAN !!!")
+//                                        .setMessage("Terdapat asap rokok di toilet ini.")
+//                                        .setCancelable(false)
+//                                        .setNegativeButton("TUTUP", null)
+//                                        .setPositiveButton("LAPORKAN", new DialogInterface.OnClickListener() {
+//                                            public void onClick(DialogInterface dialog, int id) {
+//                                                finish();
+//                                            }
+//                                        })
+//                                        .show();
                             } else {
                                 text_keterangan.setText("Sensor Gas terdeteksi Normal\nTidak ada asap rokok.");
                             }
@@ -220,6 +236,30 @@ public class MainActivity extends AppCompatActivity {
                         hideDialog();
                     }
                 });
+    }
+
+    private boolean appInstalledOrNot() {
+        PackageManager pm = getPackageManager();
+        boolean app_installed;
+        try {
+            pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
+            app_installed = true;
+        }
+        catch (PackageManager.NameNotFoundException e) {
+            app_installed = false;
+        }
+        return app_installed;
+    }
+
+    public void openWhatsApp(String number) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setData(Uri.parse("http://wa.me/+" + number + "?text=Konfirmasi.\nPemberitahuan bahwa ada asap rokok di dalam kamar mandi untuk sekarang. Untuk menjaga lingkungan Kampus IST Akpring yang bebas rokok untuk segera mengecek kamar mandi tersebut. \n\n*Powered by System Pendeteksi MQ-7 Skripsi Wierto*"));
+            startActivity(intent);
+            finish();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void showDialog() {
