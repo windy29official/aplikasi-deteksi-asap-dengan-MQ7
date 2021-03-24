@@ -1,6 +1,7 @@
 package aplikasiispu.rajacoding.com;
 
 import androidx.appcompat.app.AppCompatActivity;
+
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -13,14 +14,18 @@ import android.os.Handler;
 import android.text.format.DateFormat;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
+
 import com.androidnetworking.AndroidNetworking;
 import com.androidnetworking.common.Priority;
 import com.androidnetworking.error.ANError;
 import com.androidnetworking.interfaces.JSONObjectRequestListener;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -50,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     public SessionManager SessionManager;
     private TextView text_asap1, text_asap3;
     int intensitas_asap;
+    private RelativeLayout rl_bad, rl_safe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
         img_logout = findViewById(R.id.img_logout);
         text_asap1 = findViewById(R.id.text_asap1);
         text_asap3 = findViewById(R.id.text_asap3);
+        rl_bad = findViewById(R.id.rl_bad);
+        rl_safe = findViewById(R.id.rl_safe);
         Date dateNow = Calendar.getInstance().getTime();
         hariIni = (String) DateFormat.format("EEEE", dateNow);
 
@@ -90,12 +98,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 boolean installed = appInstalledOrNot();
-                if(installed) {
+                if (installed) {
                     openWhatsApp("6281391106600");
                 } else {
-                    String nomor = "6281391106600" ;
-                    Intent panggil = new Intent(Intent. ACTION_DIAL);
-                    panggil.setData(Uri. fromParts("tel",nomor,null));
+                    String nomor = "6281391106600";
+                    Intent panggil = new Intent(Intent.ACTION_DIAL);
+                    panggil.setData(Uri.fromParts("tel", nomor, null));
                     startActivity(panggil);
                 }
             }
@@ -121,7 +129,6 @@ public class MainActivity extends AppCompatActivity {
                 LoadData();
                 getCart();
                 doTheAutoRefresh();
-
             }
         }, 3000);
     }
@@ -157,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void LoadIntensitas() {
-        AndroidNetworking.post("http://" + ip + Config.HOST  + "load_intensitas.php")
+        AndroidNetworking.post("http://" + ip + Config.HOST + "load_intensitas.php")
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
@@ -184,7 +191,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void LoadData() {
-        AndroidNetworking.post("http://" + ip + Config.HOST  + "list_data.php")
+        AndroidNetworking.post("http://" + ip + Config.HOST + "list_data.php")
                 .addBodyParameter("batas", batas)
                 .addBodyParameter("waktu", "N")
                 .setPriority(Priority.MEDIUM)
@@ -206,8 +213,9 @@ public class MainActivity extends AppCompatActivity {
 
                             text_asap.setText(asap);
                             if (Integer.parseInt(asap) > intensitas_asap) {
-                          //      stopHandler();
                                 text_keterangan.setText("Sensor Gas terdeteksi Bahaya\nAda asap rokok.");
+                                rl_safe.setVisibility(View.GONE);
+                                rl_bad.setVisibility(View.VISIBLE);
 //                                new AlertDialog.Builder(MainActivity.this)
 //                                        .setTitle("PERINGATAN !!!")
 //                                        .setMessage("Terdapat asap rokok di toilet ini.")
@@ -221,9 +229,56 @@ public class MainActivity extends AppCompatActivity {
 //                                        .show();
                             } else {
                                 text_keterangan.setText("Sensor Gas terdeteksi Normal\nTidak ada asap rokok.");
+                                rl_safe.setVisibility(View.VISIBLE);
+                                rl_bad.setVisibility(View.GONE);
                             }
 
+                            findViewById(R.id.cv_intensitas).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    new AlertDialog.Builder(MainActivity.this)
+                                            .setTitle("Konfirmasi !!!")
+                                            .setMessage("Terdapat perubahan intensitas nilai default MQ7. Apakah mau melakukan perubahan?")
+                                            .setCancelable(false)
+                                            .setNegativeButton("Tidka", null)
+                                            .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+                                                public void onClick(DialogInterface dialog, int id) {
+                                                    UpdateIntensitas(asap);
+                                                }
+                                            })
+                                            .show();
+                                }
+                            });
+
                             hideDialog();
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                            hideDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        hideDialog();
+                    }
+                });
+    }
+
+    private void UpdateIntensitas(String asap) {
+        AndroidNetworking.post("http://" + ip + Config.HOST + "update_intensitas.php")
+                .addBodyParameter("nilai_intensitas", asap)
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        try {
+                            JSONArray jsonArray = response.optJSONArray("result");
+                            for (int i = 0; i < jsonArray.length(); i++) {
+                                JSONObject responses = jsonArray.getJSONObject(i);
+                                intensitas_asap = responses.optInt("intensitas_asap");
+                            }
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -244,8 +299,7 @@ public class MainActivity extends AppCompatActivity {
         try {
             pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
             app_installed = true;
-        }
-        catch (PackageManager.NameNotFoundException e) {
+        } catch (PackageManager.NameNotFoundException e) {
             app_installed = false;
         }
         return app_installed;

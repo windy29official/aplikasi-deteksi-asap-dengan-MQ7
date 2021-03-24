@@ -19,7 +19,6 @@
             android:orientation="vertical">
 
             <TextView
-                android:visibility="gone"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
@@ -28,7 +27,8 @@
                 android:text="Gedong Kuning, Yogyakarta, Daerah Istimewa Yogyakarta, Indonesia"
                 android:textColor="@color/colorBlack"
                 android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:visibility="gone" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -36,11 +36,11 @@
 
                 <TextView
                     android:id="@+id/text_today"
-                    android:padding="10dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
                     android:gravity="center"
+                    android:padding="10dp"
                     android:textColor="@color/colorBlack"
                     android:textSize="18sp"
                     tools:text="Kamis, 22 Juli 2020" />
@@ -49,22 +49,45 @@
                     android:id="@+id/img_logout"
                     android:layout_width="45dp"
                     android:layout_height="45dp"
-                    android:src="@drawable/ic_logout"
                     android:layout_alignParentEnd="true"
                     android:padding="10dp"
+                    android:src="@drawable/ic_logout"
                     app:tint="@color/colorBlack" />
 
             </RelativeLayout>
 
-
-            <ImageView
-                android:layout_width="150dp"
-                android:layout_height="150dp"
+            <RelativeLayout
+                android:id="@+id/rl_safe"
                 android:layout_gravity="center"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
-                android:padding="10dp"
-                android:src="@drawable/shield" />
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="10dp"
+                    android:padding="10dp"
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/anim_safe" />
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:visibility="gone"
+                android:id="@+id/rl_bad"
+                android:layout_gravity="center"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:layout_marginTop="10dp"
+                    android:padding="10dp"
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/anim_smoke" />
+            </RelativeLayout>
 
             <TextView
                 android:id="@+id/text_keterangan"
@@ -85,6 +108,7 @@
                 android:weightSum="3">
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_intensitas"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -216,10 +240,10 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Keterangan :"
-                android:textSize="15sp"
                 android:layout_margin="10dp"
-                android:textColor="@color/colorBlack"/>
+                android:text="Keterangan :"
+                android:textColor="@color/colorBlack"
+                android:textSize="15sp" />
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -248,9 +272,9 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:layout_toEndOf="@+id/text3"
-                    tools:text="Ada Asap"
                     android:textColor="@color/colorBlack"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    tools:text="Ada Asap" />
             </RelativeLayout>
 
             <RelativeLayout
@@ -280,9 +304,9 @@
                     android:layout_height="wrap_content"
                     android:layout_margin="10dp"
                     android:layout_toEndOf="@+id/text1"
-                    tools:text="Ada Asap"
                     android:textColor="@color/colorBlack"
-                    android:textSize="15sp" />
+                    android:textSize="15sp"
+                    tools:text="Ada Asap" />
             </RelativeLayout>
         </LinearLayout>
 
