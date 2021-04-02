@@ -2,16 +2,19 @@ package aplikasiispu.rajacoding.com;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -56,6 +59,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView text_asap1, text_asap3;
     int intensitas_asap;
     private RelativeLayout rl_bad, rl_safe;
+    private static final String isPlaying = "Media is Playing";
+    private MediaPlayer player;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,11 +102,17 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.cv_hubungi).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                boolean installed = appInstalledOrNot();
+                boolean installed = appInstalledOrNot("com.whatsapp");
                 if (installed) {
-                    openWhatsApp("6281391106600");
+                    String receiver_number = "628978057872";
+                    Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+                    whatsappIntent.setPackage("com.whatsapp");
+                    whatsappIntent.setType("text/plain");
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Konfirmasi.\nPemberitahuan bahwa ada asap rokok di dalam kamar mandi untuk sekarang. Untuk menjaga lingkungan Kampus IST Akpring yang bebas rokok untuk segera mengecek kamar mandi tersebut. \n\n*Powered by System Pendeteksi MQ-7 Skripsi Wierto*");
+                    whatsappIntent.putExtra("jid", receiver_number + "@s.whatsapp.net");
+                    startActivity(whatsappIntent);
                 } else {
-                    String nomor = "6281391106600";
+                    String nomor = "628978057872";
                     Intent panggil = new Intent(Intent.ACTION_DIAL);
                     panggil.setData(Uri.fromParts("tel", nomor, null));
                     startActivity(panggil);
@@ -216,6 +227,9 @@ public class MainActivity extends AppCompatActivity {
                                 text_keterangan.setText("Sensor Gas terdeteksi Bahaya\nAda asap rokok.");
                                 rl_safe.setVisibility(View.GONE);
                                 rl_bad.setVisibility(View.VISIBLE);
+
+                                playSound();
+                                PopUp_Laporkan();
 //                                new AlertDialog.Builder(MainActivity.this)
 //                                        .setTitle("PERINGATAN !!!")
 //                                        .setMessage("Terdapat asap rokok di toilet ini.")
@@ -223,10 +237,19 @@ public class MainActivity extends AppCompatActivity {
 //                                        .setNegativeButton("TUTUP", null)
 //                                        .setPositiveButton("LAPORKAN", new DialogInterface.OnClickListener() {
 //                                            public void onClick(DialogInterface dialog, int id) {
-//                                                finish();
+//                                                boolean installed = appInstalledOrNot();
+//                                                if (installed) {
+//                                                    openWhatsApp("628978057872");
+//                                                } else {
+//                                                    String nomor = "08978057872";
+//                                                    Intent panggil = new Intent(Intent.ACTION_DIAL);
+//                                                    panggil.setData(Uri.fromParts("tel", nomor, null));
+//                                                    startActivity(panggil);
+//                                                }
 //                                            }
 //                                        })
 //                                        .show();
+
                             } else {
                                 text_keterangan.setText("Sensor Gas terdeteksi Normal\nTidak ada asap rokok.");
                                 rl_safe.setVisibility(View.VISIBLE);
@@ -243,7 +266,7 @@ public class MainActivity extends AppCompatActivity {
                                             .setNegativeButton("Tidka", null)
                                             .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
-                                                    UpdateIntensitas(asap);
+                                                    UpdateIntensitas(String.valueOf(intensitas_asap));
                                                 }
                                             })
                                             .show();
@@ -273,17 +296,12 @@ public class MainActivity extends AppCompatActivity {
                 .getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        try {
-                            JSONArray jsonArray = response.optJSONArray("result");
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject responses = jsonArray.getJSONObject(i);
-                                intensitas_asap = responses.optInt("intensitas_asap");
-                            }
-
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            hideDialog();
-                        }
+                        new AlertDialog.Builder(MainActivity.this)
+                                .setTitle("Konfirmasi !!!")
+                                .setMessage(response.optString("pesan"))
+                                .setCancelable(false)
+                                .setNegativeButton("Baiklah", null)
+                                .show();
                     }
 
                     @Override
@@ -293,11 +311,23 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private boolean appInstalledOrNot() {
+//    private boolean appInstalledOrNot() {
+//        PackageManager pm = getPackageManager();
+//        boolean app_installed;
+//        try {
+//            pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
+//            app_installed = true;
+//        } catch (PackageManager.NameNotFoundException e) {
+//            app_installed = false;
+//        }
+//        return app_installed;
+//    }
+
+    private boolean appInstalledOrNot(String uri) {
         PackageManager pm = getPackageManager();
         boolean app_installed;
         try {
-            pm.getPackageInfo("com.whatsapp", PackageManager.GET_ACTIVITIES);
+            pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
             app_installed = true;
         } catch (PackageManager.NameNotFoundException e) {
             app_installed = false;
@@ -314,6 +344,74 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        pDialog.dismiss();
+    }
+
+    private void PopUp_Laporkan() {
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(MainActivity.this);
+        LayoutInflater inflater = getLayoutInflater();
+        @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.model_popup_laporkan, null);
+        dialogBuilder.setView(dialogView);
+        dialogBuilder.setCancelable(false);
+        final AlertDialog alertDialog = dialogBuilder.create();
+        TextView text_tidak = dialogView.findViewById(R.id.text_tidak);
+        TextView text_ya = dialogView.findViewById(R.id.text_ya);
+
+        text_tidak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                alertDialog.dismiss();
+            }
+        });
+        text_ya.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean installed = appInstalledOrNot("com.whatsapp");
+                if (installed) {
+                    String receiver_number = "628978057872";
+                    Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+                    whatsappIntent.setPackage("com.whatsapp");
+                    whatsappIntent.setType("text/plain");
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Konfirmasi.\nPemberitahuan bahwa ada asap rokok di dalam kamar mandi untuk sekarang. Untuk menjaga lingkungan Kampus IST Akpring yang bebas rokok untuk segera mengecek kamar mandi tersebut. \n\n*Powered by System Pendeteksi MQ-7 Skripsi Wierto*");
+                    whatsappIntent.putExtra("jid", receiver_number + "@s.whatsapp.net");
+                    startActivity(whatsappIntent);
+                } else {
+                    String nomor = "628978057872";
+                    Intent panggil = new Intent(Intent.ACTION_DIAL);
+                    panggil.setData(Uri.fromParts("tel", nomor, null));
+                    startActivity(panggil);
+                }
+//                boolean installed = appInstalledOrNot();
+//                if (installed) {
+//                    openWhatsApp("628978057872");
+//                } else {
+//                    String nomor = "08978057872";
+//                    Intent panggil = new Intent(Intent.ACTION_DIAL);
+//                    panggil.setData(Uri.fromParts("tel", nomor, null));
+//                    startActivity(panggil);
+//                }
+            }
+        });
+        alertDialog.show();
+    }
+
+    private void playSound() {
+        try {
+            if (player.isPlaying()) {
+                player.stop();
+                player.release();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        player = MediaPlayer.create(this, R.raw.wrong);
+        player.setLooping(false); // Set looping
+        player.start();
     }
 
     private void showDialog() {

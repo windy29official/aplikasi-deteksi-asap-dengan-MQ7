@@ -40,8 +40,10 @@ import lecho.lib.hellocharts.view.PieChartView;
 public class LaporanActivity extends AppCompatActivity {
     private String tanggal_awal = "";
     private String tanggal_akhir = "";
-    public String batas = "";
     public String waktu = "N";
+    private TextView text_more;
+    int limit = 0;
+    int offset = 50;
     private CardView cv_filter1, cv_filter;
     private TextView text_awal, text_akhir;
     public String ip;
@@ -75,6 +77,7 @@ public class LaporanActivity extends AppCompatActivity {
         rv_laporan = findViewById(R.id.rv_laporan);
         text_asap1 = findViewById(R.id.text_asap1);
         text_asap3 = findViewById(R.id.text_asap3);
+        text_more = findViewById(R.id.text_more);
 
         LaporanModel = new ArrayList<>();
         LinearLayoutManager i = new GridLayoutManager(getApplicationContext(), 1, GridLayoutManager.VERTICAL, false);
@@ -104,7 +107,7 @@ public class LaporanActivity extends AppCompatActivity {
                 pDialog.setMessage("Memuat Tampilan . .");
                 showDialog();
                 waktu = "Y";
-                batas = "";
+                limit = 0;
                 LoadData();
                 getCart();
             }
@@ -144,6 +147,19 @@ public class LaporanActivity extends AppCompatActivity {
                 finish();
             }
         });
+        text_more.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                pDialog = new ProgressDialog(LaporanActivity.this);
+                pDialog.setCancelable(false);
+                pDialog.setMessage("Memuat Tampilan . .");
+                showDialog();
+                waktu = "Y";
+                limit = limit + offset;
+                LoadData();
+                getCart();
+            }
+        });
     }
 
     private void getCart() {
@@ -159,7 +175,8 @@ public class LaporanActivity extends AppCompatActivity {
 
     private void LoadData() {
         AndroidNetworking.post("http://" + ip + Config.HOST  + "list_data.php")
-                .addBodyParameter("batas", batas)
+                .addBodyParameter("limit", String.valueOf(limit))
+                .addBodyParameter("offset", String.valueOf(offset))
                 .addBodyParameter("waktu", waktu)
                 .addBodyParameter("waktu_awal", tanggal_awal)
                 .addBodyParameter("waktu_akhir", tanggal_akhir)
@@ -182,6 +199,12 @@ public class LaporanActivity extends AppCompatActivity {
 
                             LaporanAdapter adapter = new LaporanAdapter(getApplicationContext(), LaporanModel);
                             rv_laporan.setAdapter(adapter);
+
+                            if (adapter.getItemCount() < offset) {
+                                text_more.setVisibility(View.GONE);
+                            } else {
+                                text_more.setVisibility(View.VISIBLE);
+                            }
 
                             hideDialog();
 
