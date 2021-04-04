@@ -72,7 +72,6 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void LoginData(final String username, final String pass, final String ip) {
-        Toast.makeText(LoginActivity.this, "isi " + ip, Toast.LENGTH_SHORT).show();
         ly00.setVisibility(View.VISIBLE);
         ly11.setVisibility(View.GONE);
         AndroidNetworking.post("http://" + ip + Config.HOST + "login_admin.php")

@@ -56,6 +56,19 @@
 
             </RelativeLayout>
 
+            <TextView
+                android:id="@+id/text_default"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center"
+                android:padding="5dp"
+                tools:text="Intensitas sekarang"
+                android:textAllCaps="true"
+                android:textColor="@color/colorBlack"
+                android:textSize="15sp"
+                tools:ignore="HardcodedText" />
+
             <RelativeLayout
                 android:id="@+id/rl_safe"
                 android:layout_gravity="center"
@@ -183,6 +196,7 @@
                 </androidx.cardview.widget.CardView>
 
                 <androidx.cardview.widget.CardView
+                    android:id="@+id/cv_bantuan"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"

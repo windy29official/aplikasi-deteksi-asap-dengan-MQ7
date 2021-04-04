@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.format.DateFormat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -58,9 +59,11 @@ public class MainActivity extends AppCompatActivity {
     public SessionManager SessionManager;
     private TextView text_asap1, text_asap3;
     int intensitas_asap;
+    String intensitas_asap2;
     private RelativeLayout rl_bad, rl_safe;
     private static final String isPlaying = "Media is Playing";
     private MediaPlayer player;
+    private TextView text_default;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
         text_asap3 = findViewById(R.id.text_asap3);
         rl_bad = findViewById(R.id.rl_bad);
         rl_safe = findViewById(R.id.rl_safe);
+        text_default = findViewById(R.id.text_default);
         Date dateNow = Calendar.getInstance().getTime();
         hariIni = (String) DateFormat.format("EEEE", dateNow);
 
@@ -108,7 +112,27 @@ public class MainActivity extends AppCompatActivity {
                     Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
                     whatsappIntent.setPackage("com.whatsapp");
                     whatsappIntent.setType("text/plain");
-                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Konfirmasi.\nPemberitahuan bahwa ada asap rokok di dalam kamar mandi untuk sekarang. Untuk menjaga lingkungan Kampus IST Akpring yang bebas rokok untuk segera mengecek kamar mandi tersebut. \n\n*Powered by System Pendeteksi MQ-7 Skripsi Wierto*");
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Konfirmasi.\nPemberitahuan bahwa ada asap rokok di dalam kamar mandi untuk sekarang. Untuk menjaga lingkungan Kampus IST Akpring yang bebas rokok untuk segera mengecek kamar mandi tersebut. \n\n*Powered by System Pendeteksi MQ-7 Skripsi Wirto*");
+                    whatsappIntent.putExtra("jid", receiver_number + "@s.whatsapp.net");
+                    startActivity(whatsappIntent);
+                } else {
+                    String nomor = "628978057872";
+                    Intent panggil = new Intent(Intent.ACTION_DIAL);
+                    panggil.setData(Uri.fromParts("tel", nomor, null));
+                    startActivity(panggil);
+                }
+            }
+        });
+        findViewById(R.id.cv_hubungi).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                boolean installed = appInstalledOrNot("com.whatsapp");
+                if (installed) {
+                    String receiver_number = "628978057872";
+                    Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+                    whatsappIntent.setPackage("com.whatsapp");
+                    whatsappIntent.setType("text/plain");
+                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Halo admin saya membutuhkan bantuan untuk penggunaan aplikasi Monitoring Bebas Rokok ini. \n\n\n*Powered by System Pendeteksi MQ-7 Skripsi Wirto*");
                     whatsappIntent.putExtra("jid", receiver_number + "@s.whatsapp.net");
                     startActivity(whatsappIntent);
                 } else {
@@ -179,6 +203,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
+                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
@@ -187,6 +212,8 @@ public class MainActivity extends AppCompatActivity {
                                 JSONObject responses = jsonArray.getJSONObject(i);
                                 intensitas_asap = responses.optInt("intensitas_asap");
                             }
+
+                            text_default.setText("Nilai Defaut MQ-7 Sekarang : " + intensitas_asap + " ppm");
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -203,8 +230,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void LoadData() {
         AndroidNetworking.post("http://" + ip + Config.HOST + "list_data.php")
-                .addBodyParameter("batas", batas)
                 .addBodyParameter("waktu", "N")
+                .addBodyParameter("menu", "menuutama")
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
@@ -215,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
                             for (int i = 0; i < jsonArray.length(); i++) {
                                 JSONObject responses = jsonArray.getJSONObject(i);
                                 asap = responses.optString("asap");
+                                intensitas_asap2 = responses.optString("intensitas_asap");
                                 jumlah_aman = responses.optInt("jumlah_aman");
                                 jumlah_bahaya = responses.optInt("jumlah_bahaya");
                             }
@@ -230,25 +258,6 @@ public class MainActivity extends AppCompatActivity {
 
                                 playSound();
                                 PopUp_Laporkan();
-//                                new AlertDialog.Builder(MainActivity.this)
-//                                        .setTitle("PERINGATAN !!!")
-//                                        .setMessage("Terdapat asap rokok di toilet ini.")
-//                                        .setCancelable(false)
-//                                        .setNegativeButton("TUTUP", null)
-//                                        .setPositiveButton("LAPORKAN", new DialogInterface.OnClickListener() {
-//                                            public void onClick(DialogInterface dialog, int id) {
-//                                                boolean installed = appInstalledOrNot();
-//                                                if (installed) {
-//                                                    openWhatsApp("628978057872");
-//                                                } else {
-//                                                    String nomor = "08978057872";
-//                                                    Intent panggil = new Intent(Intent.ACTION_DIAL);
-//                                                    panggil.setData(Uri.fromParts("tel", nomor, null));
-//                                                    startActivity(panggil);
-//                                                }
-//                                            }
-//                                        })
-//                                        .show();
 
                             } else {
                                 text_keterangan.setText("Sensor Gas terdeteksi Normal\nTidak ada asap rokok.");
@@ -261,12 +270,12 @@ public class MainActivity extends AppCompatActivity {
                                 public void onClick(View view) {
                                     new AlertDialog.Builder(MainActivity.this)
                                             .setTitle("Konfirmasi !!!")
-                                            .setMessage("Terdapat perubahan intensitas nilai default MQ7. Apakah mau melakukan perubahan?")
+                                            .setMessage("Terdapat perubahan intensitas nilai default Sensor MQ-7. Apakah mau melakukan perubahan?")
                                             .setCancelable(false)
-                                            .setNegativeButton("Tidka", null)
+                                            .setNegativeButton("Tidak", null)
                                             .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
                                                 public void onClick(DialogInterface dialog, int id) {
-                                                    UpdateIntensitas(String.valueOf(intensitas_asap));
+                                                    UpdateIntensitas(asap);
                                                 }
                                             })
                                             .show();
@@ -289,8 +298,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void UpdateIntensitas(String asap) {
-        AndroidNetworking.post("http://" + ip + Config.HOST + "update_intensitas.php")
-                .addBodyParameter("nilai_intensitas", asap)
+        AndroidNetworking.get("http://" + ip + Config.HOST + "update_intensitas.php")
+                .addQueryParameter("nilai_intensitas", asap)
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {

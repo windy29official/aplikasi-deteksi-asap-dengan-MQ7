@@ -8,8 +8,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -43,7 +45,7 @@ public class LaporanActivity extends AppCompatActivity {
     public String waktu = "N";
     private TextView text_more;
     int limit = 0;
-    int offset = 50;
+    int offset = 10;
     private CardView cv_filter1, cv_filter;
     private TextView text_awal, text_akhir;
     public String ip;
@@ -95,6 +97,7 @@ public class LaporanActivity extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setMessage("Memuat Tampilan . .");
         showDialog();
+        LaporanModel.clear();
         LoadData();
     }
 
@@ -106,6 +109,7 @@ public class LaporanActivity extends AppCompatActivity {
                 pDialog.setCancelable(false);
                 pDialog.setMessage("Memuat Tampilan . .");
                 showDialog();
+                LaporanModel.clear();
                 waktu = "Y";
                 limit = 0;
                 LoadData();
@@ -175,9 +179,10 @@ public class LaporanActivity extends AppCompatActivity {
 
     private void LoadData() {
         AndroidNetworking.post("http://" + ip + Config.HOST  + "list_data.php")
+                .addBodyParameter("waktu", waktu)
+                .addBodyParameter("menu", "laporan")
                 .addBodyParameter("limit", String.valueOf(limit))
                 .addBodyParameter("offset", String.valueOf(offset))
-                .addBodyParameter("waktu", waktu)
                 .addBodyParameter("waktu_awal", tanggal_awal)
                 .addBodyParameter("waktu_akhir", tanggal_akhir)
                 .setPriority(Priority.MEDIUM)
@@ -237,6 +242,14 @@ public class LaporanActivity extends AppCompatActivity {
                     @Override
                     public void onError(ANError error) {
                         hideDialog();
+                        new AlertDialog.Builder(LaporanActivity.this)
+                                .setTitle("Konfirmasi !!!")
+                                .setMessage("Ini merupakan data asap terakhir!!!")
+                                .setCancelable(false)
+                                .setNegativeButton("Tutup pesan", null)
+                                .show();
+                        hideDialog();
+                        text_more.setVisibility(View.GONE);
                     }
                 });
     }
