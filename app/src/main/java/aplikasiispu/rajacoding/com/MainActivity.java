@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        findViewById(R.id.cv_hubungi).setOnClickListener(new View.OnClickListener() {
+        findViewById(R.id.cv_bantuan).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 boolean installed = appInstalledOrNot("com.whatsapp");
@@ -418,7 +418,7 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        player = MediaPlayer.create(this, R.raw.wrong);
+        player = MediaPlayer.create(this, R.raw.siren_alert);
         player.setLooping(false); // Set looping
         player.start();
     }

@@ -276,6 +276,22 @@ public class LaporanActivity extends AppCompatActivity {
             final LaporanModel item = LaporanModel.get(i);
             holder.text_tanggal.setText(item.getTanggal());
             holder.text_asap.setText("asap " + item.getAsap() + " ppm");
+            holder.cv.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    new AlertDialog.Builder(mCtx)
+                            .setTitle("Konfirmasi !!!")
+                            .setMessage("Terdapat perubahan intensitas nilai default Sensor MQ-7. Apakah mau melakukan perubahan?")
+                            .setCancelable(false)
+                            .setNegativeButton("Tidak", null)
+                            .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    UpdateIntensitas(item.getAsap());
+                                }
+                            })
+                            .show();
+                }
+            });
         }
 
         @Override
@@ -285,13 +301,38 @@ public class LaporanActivity extends AppCompatActivity {
 
         class ProductViewHolder extends RecyclerView.ViewHolder {
             TextView text_tanggal, text_asap;
+            CardView cv;
 
             ProductViewHolder(View itemView) {
                 super(itemView);
                 text_tanggal = itemView.findViewById(R.id.text_tanggal);
                 text_asap = itemView.findViewById(R.id.text_asap);
+                cv = itemView.findViewById(R.id.cv);
             }
         }
+    }
+
+    private void UpdateIntensitas(String asap) {
+        AndroidNetworking.get("http://" + ip + Config.HOST + "update_intensitas.php")
+                .addQueryParameter("nilai_intensitas", asap)
+                .setPriority(Priority.MEDIUM)
+                .build()
+                .getAsJSONObject(new JSONObjectRequestListener() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+                        new AlertDialog.Builder(LaporanActivity.this)
+                                .setTitle("Konfirmasi !!!")
+                                .setMessage(response.optString("pesan"))
+                                .setCancelable(false)
+                                .setNegativeButton("Baiklah", null)
+                                .show();
+                    }
+
+                    @Override
+                    public void onError(ANError error) {
+                        hideDialog();
+                    }
+                });
     }
 
     private void showDialog() {

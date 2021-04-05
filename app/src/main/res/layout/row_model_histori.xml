@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:id="@+id/cv"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     app:cardBackgroundColor="@color/colorWhite"
     app:cardUseCompatPadding="true"
@@ -19,7 +20,8 @@
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:padding="5dp"
-            android:src="@drawable/ic_tanggal" />
+            android:src="@drawable/ic_tanggal"
+            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/text_tanggal"

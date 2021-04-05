@@ -42,7 +42,7 @@ public class LoginActivity extends AppCompatActivity {
         ly11 = findViewById(R.id.ly11);
         img_loading = findViewById(R.id.img_loading);
         Glide.with(LoginActivity.this)
-                .load("https://media.giphy.com/media/3ornjOID5ncUy9xohW/giphy.gif")
+                .load("https://media.giphy.com/media/3oEjI6SIIHBdRxXI40/giphy.gif")
                 .into(img_loading);
         etUsername = findViewById(R.id.etUsername);
         etPass = findViewById(R.id.etPass);
@@ -53,10 +53,10 @@ public class LoginActivity extends AppCompatActivity {
                 username = etUsername.getText().toString().trim();
                 pass = etPass.getText().toString().trim();
                 ip = etIp.getText().toString().trim();
-                
-                if (username.length() == 0){
+
+                if (username.length() == 0) {
                     etUsername.setError("Username tidak boleh kosong");
-                } else if  (pass.length() == 0){
+                } else if (pass.length() == 0) {
                     etPass.setError("Password tidak boleh kosong");
                 } else {
                     LoginData(username, pass, ip);
@@ -82,7 +82,7 @@ public class LoginActivity extends AppCompatActivity {
                 .getAsJSONObject(new JSONObjectRequestListener() {
                     @Override
                     public void onResponse(JSONObject response) {
-                        if (response.optString("response").equals("1")){
+                        if (response.optString("response").equals("1")) {
                             ly00.setVisibility(View.GONE);
                             ly11.setVisibility(View.VISIBLE);
 
