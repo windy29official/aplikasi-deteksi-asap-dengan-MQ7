@@ -123,26 +123,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-        findViewById(R.id.cv_bantuan).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                boolean installed = appInstalledOrNot("com.whatsapp");
-                if (installed) {
-                    String receiver_number = "628978057872";
-                    Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
-                    whatsappIntent.setPackage("com.whatsapp");
-                    whatsappIntent.setType("text/plain");
-                    whatsappIntent.putExtra(Intent.EXTRA_TEXT, "Halo admin saya membutuhkan bantuan untuk penggunaan aplikasi Monitoring Bebas Rokok ini. \n\n\n*Powered by System Pendeteksi MQ-7 Skripsi Wirto*");
-                    whatsappIntent.putExtra("jid", receiver_number + "@s.whatsapp.net");
-                    startActivity(whatsappIntent);
-                } else {
-                    String nomor = "628978057872";
-                    Intent panggil = new Intent(Intent.ACTION_DIAL);
-                    panggil.setData(Uri.fromParts("tel", nomor, null));
-                    startActivity(panggil);
-                }
-            }
-        });
     }
 
     @Override
@@ -235,6 +215,7 @@ public class MainActivity extends AppCompatActivity {
                 .setPriority(Priority.MEDIUM)
                 .build()
                 .getAsJSONObject(new JSONObjectRequestListener() {
+                    @SuppressLint("SetTextI18n")
                     @Override
                     public void onResponse(JSONObject response) {
                         try {
@@ -251,18 +232,45 @@ public class MainActivity extends AppCompatActivity {
                             text_asap3.setText("(" + jumlah_aman + ")");
 
                             text_asap.setText(asap);
-                            if (Integer.parseInt(asap) > intensitas_asap) {
+                            if (Integer.parseInt(asap) > Integer.parseInt(intensitas_asap2)) {
                                 text_keterangan.setText("Sensor Gas terdeteksi Bahaya\nAda asap rokok.");
                                 rl_safe.setVisibility(View.GONE);
                                 rl_bad.setVisibility(View.VISIBLE);
-
                                 playSound();
-                                PopUp_Laporkan();
+
+                                findViewById(R.id.cv_bantuan).setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setTitle("Konfirmasi !!!")
+                                                .setMessage("Apakah mau mematikan alarm?")
+                                                .setCancelable(false)
+                                                .setNegativeButton("Tidak", null)
+                                                .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
+                                                    public void onClick(DialogInterface dialog, int id) {
+                                                        player.stop();
+                                                    }
+                                                })
+                                                .show();
+                                    }
+                                });
 
                             } else {
                                 text_keterangan.setText("Sensor Gas terdeteksi Normal\nTidak ada asap rokok.");
                                 rl_safe.setVisibility(View.VISIBLE);
                                 rl_bad.setVisibility(View.GONE);
+
+                                findViewById(R.id.cv_bantuan).setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        new AlertDialog.Builder(MainActivity.this)
+                                                .setTitle("Konfirmasi !!!")
+                                                .setMessage("Fungsi matikan alarm tidak tersedia, karena alarm belum berbunyi.")
+                                                .setCancelable(false)
+                                                .setNegativeButton("Baiklah", null)
+                                                .show();
+                                    }
+                                });
                             }
 
                             findViewById(R.id.cv_intensitas).setOnClickListener(new View.OnClickListener() {

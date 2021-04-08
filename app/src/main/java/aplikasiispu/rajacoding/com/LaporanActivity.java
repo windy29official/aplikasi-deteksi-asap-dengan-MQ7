@@ -6,6 +6,7 @@ import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
@@ -59,6 +60,7 @@ public class LaporanActivity extends AppCompatActivity {
     private RecyclerView rv_laporan;
     private ArrayList<LaporanModel> LaporanModel;
     private TextView text_asap1, text_asap3;
+    private SwipeRefreshLayout swipe_refresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +82,7 @@ public class LaporanActivity extends AppCompatActivity {
         text_asap1 = findViewById(R.id.text_asap1);
         text_asap3 = findViewById(R.id.text_asap3);
         text_more = findViewById(R.id.text_more);
+        swipe_refresh = findViewById(R.id.swipe_refresh);
 
         LaporanModel = new ArrayList<>();
         LinearLayoutManager i = new GridLayoutManager(getApplicationContext(), 1, GridLayoutManager.VERTICAL, false);
@@ -97,6 +100,7 @@ public class LaporanActivity extends AppCompatActivity {
         pDialog.setCancelable(false);
         pDialog.setMessage("Memuat Tampilan . .");
         showDialog();
+        limit = 0;
         LaporanModel.clear();
         LoadData();
     }
@@ -164,6 +168,18 @@ public class LaporanActivity extends AppCompatActivity {
                 getCart();
             }
         });
+        swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                pDialog = new ProgressDialog(LaporanActivity.this);
+                pDialog.setCancelable(false);
+                pDialog.setMessage("Memuat Tampilan . .");
+                showDialog();
+                limit = 0;
+                LaporanModel.clear();
+                LoadData();
+            }
+        });
     }
 
     private void getCart() {
@@ -212,12 +228,13 @@ public class LaporanActivity extends AppCompatActivity {
                             }
 
                             hideDialog();
+                            swipe_refresh.setRefreshing(false);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
                             hideDialog();
                         }
-//
+
                         try {
                             JSONArray jsonArray = response.optJSONArray("result");
                             for (int i = 0; i < jsonArray.length(); i++) {
@@ -232,6 +249,7 @@ public class LaporanActivity extends AppCompatActivity {
 
                             getCart();
                             hideDialog();
+                            swipe_refresh.setRefreshing(false);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -279,17 +297,7 @@ public class LaporanActivity extends AppCompatActivity {
             holder.cv.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    new AlertDialog.Builder(mCtx)
-                            .setTitle("Konfirmasi !!!")
-                            .setMessage("Terdapat perubahan intensitas nilai default Sensor MQ-7. Apakah mau melakukan perubahan?")
-                            .setCancelable(false)
-                            .setNegativeButton("Tidak", null)
-                            .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int id) {
-                                    UpdateIntensitas(item.getAsap());
-                                }
-                            })
-                            .show();
+                    popupgantidefault(item.getAsap(), "Terdapat perubahan intensitas nilai default Sensor MQ-7 senilai " + item.getAsap() + " ppm. Apakah mau melakukan perubahan?");
                 }
             });
         }
@@ -333,6 +341,31 @@ public class LaporanActivity extends AppCompatActivity {
                         hideDialog();
                     }
                 });
+    }
+
+    private void popupgantidefault(final String asap, String isi) {
+        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(LaporanActivity.this);
+        LayoutInflater inflater = getLayoutInflater();
+        @SuppressLint("InflateParams") final View dialogView = inflater.inflate(R.layout.model_pergantian_default, null);
+        dialogBuilder.setView(dialogView);
+        dialogBuilder.setCancelable(false);
+        final AlertDialog alertDialog = dialogBuilder.create();
+        TextView keterangan = dialogView.findViewById(R.id.keterangan);
+        keterangan.setText(isi);
+        dialogView.findViewById(R.id.tidak).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                alertDialog.dismiss();
+            }
+        });
+        dialogView.findViewById(R.id.ya).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                UpdateIntensitas(asap);
+                alertDialog.dismiss();
+            }
+        });
+        alertDialog.show();
     }
 
     private void showDialog() {
