@@ -89,6 +89,13 @@ public class MainActivity extends AppCompatActivity {
         Date dateNow = Calendar.getInstance().getTime();
         hariIni = (String) DateFormat.format("EEEE", dateNow);
 
+        pDialog = new ProgressDialog(this);
+        pDialog.setCancelable(false);
+        pDialog.setMessage("Memuat Tampilan . .");
+        showDialog();
+        getToday();
+        doTheAutoRefresh();
+
         text_laporan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,17 +130,17 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        pDialog = new ProgressDialog(this);
-        pDialog.setCancelable(false);
-        pDialog.setMessage("Memuat Tampilan . .");
-        showDialog();
-        getToday();
-        doTheAutoRefresh();
+        findViewById(R.id.cv_refresh).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                pDialog = new ProgressDialog(MainActivity.this);
+                pDialog.setCancelable(false);
+                pDialog.setMessage("Memuat Tampilan . .");
+                showDialog();
+                getToday();
+                doTheAutoRefresh();
+            }
+        });
     }
 
     private void doTheAutoRefresh() {
@@ -248,6 +255,7 @@ public class MainActivity extends AppCompatActivity {
                                                 .setNegativeButton("Tidak", null)
                                                 .setPositiveButton("Ya", new DialogInterface.OnClickListener() {
                                                     public void onClick(DialogInterface dialog, int id) {
+                                                        stopHandler();
                                                         player.stop();
                                                     }
                                                 })
